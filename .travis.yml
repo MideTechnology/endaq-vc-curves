@@ -1,0 +1,42 @@
+# Linux, which just cooperates well
+os: linux
+language: python
+python:
+  - "3.7.9"
+  - "3.8.6"
+
+install:
+  - pip install -r requirements.txt
+  - pip install -r requirements_testing.txt
+script:
+  - python -m pytest bsvp tests --black --workers auto -rxX
+  - (cd common_utils; python -m pytest tests --workers auto -rxX)
+after_success:
+  - codecov
+
+matrix:
+  include:
+    # Windows doesn't support native python yet, so here we are - 3.7
+    - os: windows
+      language: shell
+      env: PATH=/c/python37:/c/Python37/scripts:$PATH
+      before_install:
+        - choco install python3 --version=3.7.9
+        - python -m pip install virtualenv
+        - virtualenv $HOME/venv
+        - source $HOME/venv/Scripts/activate
+      script:  # windows doesn't play well w/ pytest-parallel -> custom test
+        - python -m pytest bsvp tests -rxX  # black formatting already tested on linux
+        - (cd common_utils; python -m pytest tests -rxX)
+    # Windows doesn't support native python yet, so here we are - 3.8
+    - os: windows
+      language: shell
+      env: PATH=/c/python38:/c/Python38/scripts:$PATH
+      before_install:
+        - choco install python3 --version=3.8.6
+        - python -m pip install virtualenv
+        - virtualenv $HOME/venv
+        - source $HOME/venv/Scripts/activate
+      script:  # windows doesn't play well w/ pytest-parallel -> custom test
+        - python -m pytest bsvp tests -rxX  # black formatting already tested on linux
+        - (cd common_utils; python -m pytest tests -rxX)
